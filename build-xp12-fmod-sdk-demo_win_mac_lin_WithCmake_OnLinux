@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# How to run
+# cd $FMODSound_REPO
+# ./build-xp12-fmod-sdk-demo_win_mac_lin_WithCmake_OnLinux
+
+rm -r xp12-fmod-sdk-demo/win_x64/*.xpl
+rm -r xp12-fmod-sdk-demo/lin_x64/*.xpl
+rm -r xp12-fmod-sdk-demo/mac_x64/*.xpl
+
+
+# Windows build
+
+ rm -r build/*
+ cmake -S ./src -B ./build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=../src/Toolchain-mingw-w64-x86-64.cmake
+ cmake --build ./build -v
+ cp ./build/win.xpl ./xp12-fmod-sdk-demo/win_x64/xp12-fmod-sdk-demo.xpl
+
+
+# Linux build
+
+rm -r build/*
+cmake -S ./src -B ./build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build ./build -v
+cp ./build/lin.xpl ./xp12-fmod-sdk-demo/lin_x64/xp12-fmod-sdk-demo.xpl
+
+
+# Mac build
+
+rm -r build/*
+cmake -S ./src -B ./build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=../src/Toolchain-ubuntu-osxcross-x86_64-11.3.cmake
+cmake --build ./build -v
+cp ./build/mac.xpl ./xp12-fmod-sdk-demo/mac_x64/xp12-fmod-sdk-demo.xpl
+
+
+exec $SHELL
+#
+
