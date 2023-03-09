@@ -1,4 +1,7 @@
-# xp12-fmod-sdk-demo
+xp12-fmod-sdk-demo
+=========================
+
+[![CMake](https://github.com/sparker256/xp12-fmod-sdk-demo/actions/workflows/cmake.yml/badge.svg)](https://github.com/sparker256/xp12-fmod-sdk-demo/actions/workflows/cmake.yml)
 
 ## Building xp12-fmod-sdk-demo from source
 
