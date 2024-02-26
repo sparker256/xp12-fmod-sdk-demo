@@ -84,7 +84,7 @@ jobs:
         run: ls -R -l    
       - uses: actions/upload-artifact@v4
         with:
-          name: Xbtn2cmd_v${{env.XB2C_VERSION}}
+          name: xp12-fmod-sdk-demo_v${{env.XB2C_VERSION}}
           path: |
             ${{github.workspace}}/xp12-fmod-sdk-demo*
           if-no-files-found: error
