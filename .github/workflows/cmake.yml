@@ -21,7 +21,7 @@ jobs:
     runs-on: ${{matrix.os}}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: "Windows: Configure environment"
       if: runner.os == 'Windows'
@@ -48,9 +48,9 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}}
       
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: binaries
+        name: binaries-${{matrix.os}}
         path: ${{github.workspace}}/build/*.xpl
         if-no-files-found: error
 
@@ -59,9 +59,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: binaries
+          pattern: binaries-*
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: binaries
           path: xp12-fmod-sdk-demo/lin_x64
@@ -77,7 +82,7 @@ jobs:
         run: mv xp12-fmod-sdk-demo/lin_x64/mac.xpl xp12-fmod-sdk-demo/mac_x64/xp12-fmod-sdk-demo.xpl
       - name: List Final Folder     
         run: ls -R -l    
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Xbtn2cmd_v${{env.XB2C_VERSION}}
           path: |
