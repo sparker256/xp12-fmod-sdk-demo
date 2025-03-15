@@ -8,9 +8,6 @@ Lience MIT
 #include <cstring>
 #include <string>
 #include <stdexcept>
-#include <stdint.h>
-#include <cmath>
-#include <iostream>
 
 #include "fmod.h"
 #include "fmod_studio.h"
@@ -19,6 +16,7 @@ Lience MIT
 #include "XPLMPlugin.h"
 #include "XPLMProcessing.h"
 #include "XPLMUtilities.h"
+#include <stdint.h>
 #include "XPLMSound.h"
 
 using namespace std;
@@ -43,17 +41,26 @@ FMOD_SOUND *soundFMod2 = nullptr;
 FMOD_SOUND *soundFMod3 = nullptr;
 FMOD_SOUND *soundFMod4 = nullptr;
 
+FMOD_CHANNELGROUP *customChannelGroupFMod = nullptr;
+
+
 FMOD_CHANNELGROUP *fmod_demo_exterior_aircraft_channel_group = nullptr;
 FMOD_CHANNELGROUP *fmod_demo_exterior_enviroment_channel_group = nullptr;
 FMOD_CHANNELGROUP *fmod_demo_interior_channel_group = nullptr;
 FMOD_CHANNELGROUP *fmod_demo_ui_channel_group = nullptr;
 
+// To be removed before publishing
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_radio_com1 = nullptr;
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_radio_com2 = nullptr;
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_radio_pilot = nullptr;
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_radio_copilot = nullptr;
 FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_exterior_aircraft = nullptr;
 FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_exterior_enviroment = nullptr;
 FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_exterior_unprocessed = nullptr;
 FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_interior = nullptr;
 FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_ui = nullptr;
-
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_ground = nullptr;
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_master = nullptr;
 bool init = true;
 
 
@@ -107,9 +114,9 @@ unsigned long long getDelayToCurrentSoundEnd(int outputRate, FMOD_CHANNEL *playi
 
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc)
 {
-    const string pluginName = "XP12_Fmod_SDK_Demo 1.01";
-    const string pluginSignature = "SparkerInVR.Xp12_Fmod_SDK_Demo";
-    const string pluginDescription = "Plugin to test Xp12 FMod SDK";
+    const string pluginName = "Fmod_SDK_Demo";
+    const string pluginSignature = "SparkerInVR.Fmod_SDK_Demo";
+    const string pluginDescription = "Plugin to test FMod SDK";
 #if __STDC_LIB_EXT1__
     strcpy_s(outName, 255, pluginName.c_str());
     strcpy_s(outSig, 255, pluginSignature.c_str());
@@ -156,8 +163,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMessage, void *
 {
     if(XPLM_PLUGIN_XPLANE == inFrom)
     {
-        // if(XPLM_MSG_FMOD_BANK_LOADED == inMessage && xplm_RadioBank == reinterpret_cast<uintptr_t>(inParam))
-        if(XPLM_MSG_FMOD_BANK_LOADED == inMessage)
+        if(XPLM_MSG_FMOD_BANK_LOADED == inMessage && xplm_RadioBank == reinterpret_cast<uintptr_t>(inParam))
         {
             // Use the X-Plane 12 SDK sound API to get a pointer to the FMOD studio system
             fmodStudioPointer_sdk = XPLMGetFMODStudio();
@@ -170,48 +176,38 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMessage, void *
             try {
                 FMOD_RESULT result;
 
-                // Get a pointer to the FMOD core system
+                // Get a pointe to the FMOD core system
                 result = FMOD_Studio_System_GetCoreSystem(XPLMGetFMODStudio(), &fmod_system_sdk);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
-
                 // Create a custom channel
+                ChannelGroupFMod_sdk_audio_exterior_aircraft = XPLMGetFMODChannelGroup(xplm_AudioExteriorAircraft);
                 result = FMOD_System_CreateChannelGroup(fmod_system_sdk, "Fmod_Demo_Exterior_Aircraft_Channel", &fmod_demo_exterior_aircraft_channel_group);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
-
-                // The next function has a problem on Windows 11 but works fine on Windows 10, Linux and the Mac
-                // I am getting on line 185 An invalid parameter was passed to this function but it still plays the sounds.
-                ChannelGroupFMod_sdk_audio_exterior_aircraft = XPLMGetFMODChannelGroup(xplm_AudioExteriorAircraft);
                 result = FMOD_ChannelGroup_AddGroup(ChannelGroupFMod_sdk_audio_exterior_aircraft, fmod_demo_exterior_aircraft_channel_group, true, nullptr);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
 
                 // Create a custom channel
+                ChannelGroupFMod_sdk_audio_exterior_enviroment = XPLMGetFMODChannelGroup(xplm_AudioExteriorEnvironment);
                 result = FMOD_System_CreateChannelGroup(fmod_system_sdk, "Fmod_Demo_Exterior_Enviroment_Channel", &fmod_demo_exterior_enviroment_channel_group);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
-
-                // The next function has a problem on Windows 11 but works fine on Windows 10, Linux and the Mac
-                ChannelGroupFMod_sdk_audio_exterior_enviroment = XPLMGetFMODChannelGroup(xplm_AudioExteriorEnvironment);
                 result = FMOD_ChannelGroup_AddGroup(ChannelGroupFMod_sdk_audio_exterior_enviroment, fmod_demo_exterior_enviroment_channel_group, true, nullptr);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
 
                 // Create a custom channel
+                ChannelGroupFMod_sdk_audio_interior = XPLMGetFMODChannelGroup(xplm_AudioInterior);
                 result = FMOD_System_CreateChannelGroup(fmod_system_sdk, "Fmod_Demo_Interior_Channel", &fmod_demo_interior_channel_group);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
-
-                // The next function has a problem on Windows 11 but works fine on Windows 10, Linux and the Mac
-                ChannelGroupFMod_sdk_audio_interior = XPLMGetFMODChannelGroup(xplm_AudioInterior);
                 result = FMOD_ChannelGroup_AddGroup(ChannelGroupFMod_sdk_audio_interior, fmod_demo_interior_channel_group, true, nullptr);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
 
                 // Create a custom channel
+                ChannelGroupFMod_sdk_audio_ui = XPLMGetFMODChannelGroup(xplm_AudioInterior);
                 result = FMOD_System_CreateChannelGroup(fmod_system_sdk, "Fmod_Demo_UI_Channel", &fmod_demo_ui_channel_group);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
-
-                // The next function has a problem on Windows 11 but works fine on Windows 10, Linux and the Mac
-                ChannelGroupFMod_sdk_audio_ui = XPLMGetFMODChannelGroup(xplm_AudioUI);
                 result = FMOD_ChannelGroup_AddGroup(ChannelGroupFMod_sdk_audio_ui, fmod_demo_ui_channel_group, true, nullptr);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
@@ -242,10 +238,6 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMessage, void *
                 result = FMOD_System_CreateSound(fmod_system_sdk, sound4Path.c_str(), FMOD_DEFAULT, nullptr, &soundFMod4);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
-                // Load a fifth sound
-                // string sound5Path = xPlaneDirectory + "/Resources/sounds/alert/50ft.wav";
-                // result = FMOD_System_CreateSound(fmod_system_sdk, sound5Path.c_str(), FMOD_DEFAULT, nullptr, &soundFMod5);
-                // FMODErrorHandler(__FILE__, __LINE__-1, result);
 
             }
             catch (exception const& e)
@@ -257,16 +249,15 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMessage, void *
 
             XPLMScheduleFlightLoop(flightLoopID, 1.f, 1); // The FMOD bank is loaded, the system is ready to play some sound
         }
-        // if(XPLM_MSG_FMOD_BANK_UNLOADING == inMessage && xplm_RadioBank == reinterpret_cast<uintptr_t>(inParam))
-        if(XPLM_MSG_FMOD_BANK_UNLOADING == inMessage)
+        if(XPLM_MSG_FMOD_BANK_UNLOADING == inMessage && xplm_RadioBank == reinterpret_cast<uintptr_t>(inParam))
         {
             fmodStudioPointer_sdk = nullptr;
             fmod_system_sdk = nullptr;
-
-            fmod_demo_exterior_aircraft_channel_group = nullptr;
-            fmod_demo_exterior_enviroment_channel_group = nullptr;
-            fmod_demo_interior_channel_group = nullptr;
-            fmod_demo_ui_channel_group = nullptr;
+            ChannelGroupFMod_sdk_audio_exterior_aircraft = nullptr;
+            ChannelGroupFMod_sdk_audio_exterior_enviroment = nullptr;
+            ChannelGroupFMod_sdk_audio_interior = nullptr;
+            ChannelGroupFMod_sdk_audio_ui = nullptr;
+            customChannelGroupFMod = nullptr;
 
             // Unload the sounds if they were loaded
             if(nullptr != soundFMod)
@@ -278,16 +269,6 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMessage, void *
             {
                 FMOD_Sound_Release(soundFMod2);
                 soundFMod2 = nullptr;
-            }
-            if(nullptr != soundFMod3)
-            {
-                FMOD_Sound_Release(soundFMod3);
-                soundFMod3 = nullptr;
-            }
-            if(nullptr != soundFMod4)
-            {
-                FMOD_Sound_Release(soundFMod4);
-                soundFMod4 = nullptr;
             }
 
             XPLMScheduleFlightLoop(flightLoopID, 0.f, 1); // Stop the flight loop until the FMOD bank is loaded again
@@ -303,29 +284,101 @@ float flightLoop(float, float, int, void *)
 
     try
     {
+        // To be removed before publishing
+        if(init)
+        {
+            init = false;
+
+            // Using the X-Plane Fmod SDK to find and test if valid
+            // Currently Com1, Com2, Pilot and Ground are not being found
+
+            ChannelGroupFMod_sdk_audio_radio_com1 = XPLMGetFMODChannelGroup(xplm_AudioRadioCom1);
+            if(nullptr == ChannelGroupFMod_sdk_audio_radio_com1)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioRadioCom1 bus found\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_radio_com2 = XPLMGetFMODChannelGroup(xplm_AudioRadioCom2);
+            if(nullptr == ChannelGroupFMod_sdk_audio_radio_com2)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioRadioCom2 bus found\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_radio_pilot = XPLMGetFMODChannelGroup(xplm_AudioRadioPilot);
+            if(nullptr == ChannelGroupFMod_sdk_audio_radio_pilot)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioRadioPilot bus found\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_radio_copilot = XPLMGetFMODChannelGroup(xplm_AudioRadioCopilot);
+            if(nullptr == ChannelGroupFMod_sdk_audio_radio_copilot)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioRadioCopilot bus found\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_exterior_aircraft = XPLMGetFMODChannelGroup(xplm_AudioExteriorAircraft);
+            if(nullptr == ChannelGroupFMod_sdk_audio_exterior_aircraft)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioExteriorAircraft bus found\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_exterior_enviroment = XPLMGetFMODChannelGroup(xplm_AudioExteriorEnvironment);
+            if(nullptr == ChannelGroupFMod_sdk_audio_exterior_enviroment)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioExteriorEnvironment bus found\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_exterior_unprocessed = XPLMGetFMODChannelGroup(xplm_AudioExteriorUnprocessed);
+            if(nullptr == ChannelGroupFMod_sdk_audio_exterior_unprocessed)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioExteriorUnprocessed bus found\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_interior = XPLMGetFMODChannelGroup(xplm_AudioInterior);
+            if(nullptr == ChannelGroupFMod_sdk_audio_interior)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioInterior bus ound\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_ui = XPLMGetFMODChannelGroup(xplm_AudioUI);
+            if(nullptr == ChannelGroupFMod_sdk_audio_ui)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioUI bus found\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_ground = XPLMGetFMODChannelGroup(xplm_AudioGround);
+            if(nullptr == ChannelGroupFMod_sdk_audio_ground)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_AudioGround bus found\n");
+            }
+
+            ChannelGroupFMod_sdk_audio_master = XPLMGetFMODChannelGroup(xplm_Master);
+            if(nullptr == ChannelGroupFMod_sdk_audio_master)
+            {
+                XPLMDebugString("Fmod_SDK_Demo: No xplm_Master bus found\n");
+            }
+        }
+
         FMOD_RESULT result;
 
-        // The first channel on which the sound will be played
+        // The channel on which the sound will be played
         FMOD_CHANNEL* channel = nullptr;
         // Actually play the sound
         result = FMOD_System_PlaySound(fmod_system_sdk, soundFMod, fmod_demo_exterior_aircraft_channel_group, false, &channel);
         FMODErrorHandler(__FILE__, __LINE__-1, result);
 
-        // The second channel sound will be played on
         FMOD_CHANNEL* channel2 = nullptr;
-        result = FMOD_System_PlaySound(fmod_system_sdk, soundFMod2, fmod_demo_exterior_enviroment_channel_group, true, &channel2);
+        // Actually play the sound
+        result = FMOD_System_PlaySound(fmod_system_sdk, soundFMod2, fmod_demo_exterior_enviroment_channel_group, false, &channel2);
         FMODErrorHandler(__FILE__, __LINE__-1, result);
 
-        // The third channel sound will be played on
         FMOD_CHANNEL* channel3 = nullptr;
         result = FMOD_System_PlaySound(fmod_system_sdk, soundFMod3, fmod_demo_interior_channel_group, true, &channel3);
         FMODErrorHandler(__FILE__, __LINE__-1, result);
 
-        // The forth channel sound will be played on
         FMOD_CHANNEL* channel4 = nullptr;
         result = FMOD_System_PlaySound(fmod_system_sdk, soundFMod4, fmod_demo_ui_channel_group, true, &channel4);
         FMODErrorHandler(__FILE__, __LINE__-1, result);
-
 
         int outputRate = 0;
         result = FMOD_System_GetSoftwareFormat(fmod_system_sdk, &outputRate, 0, 0);
