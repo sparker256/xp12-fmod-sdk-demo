@@ -48,6 +48,12 @@ FMOD_CHANNELGROUP *fmod_demo_exterior_enviroment_channel_group = nullptr;
 FMOD_CHANNELGROUP *fmod_demo_interior_channel_group = nullptr;
 FMOD_CHANNELGROUP *fmod_demo_ui_channel_group = nullptr;
 
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_exterior_aircraft = nullptr;
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_exterior_enviroment = nullptr;
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_exterior_unprocessed = nullptr;
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_interior = nullptr;
+FMOD_CHANNELGROUP *ChannelGroupFMod_sdk_audio_ui = nullptr;
+
 bool init = true;
 
 
@@ -101,7 +107,7 @@ unsigned long long getDelayToCurrentSoundEnd(int outputRate, FMOD_CHANNEL *playi
 
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc)
 {
-    const string pluginName = "XP12_Fmod_SDK_Demo";
+    const string pluginName = "XP12_Fmod_SDK_Demo 1.01";
     const string pluginSignature = "SparkerInVR.Xp12_Fmod_SDK_Demo";
     const string pluginDescription = "Plugin to test Xp12 FMod SDK";
 #if __STDC_LIB_EXT1__
@@ -168,20 +174,45 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMessage, void *
                 result = FMOD_Studio_System_GetCoreSystem(XPLMGetFMODStudio(), &fmod_system_sdk);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
+
                 // Create a custom channel
                 result = FMOD_System_CreateChannelGroup(fmod_system_sdk, "Fmod_Demo_Exterior_Aircraft_Channel", &fmod_demo_exterior_aircraft_channel_group);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
+
+                // The next function has a problem on Windows 11 but works fine on Windows 10, Linux and the Mac
+                // I am getting on line 185 An invalid parameter was passed to this function but it still plays the sounds.
+                ChannelGroupFMod_sdk_audio_exterior_aircraft = XPLMGetFMODChannelGroup(xplm_AudioExteriorAircraft);
+                result = FMOD_ChannelGroup_AddGroup(ChannelGroupFMod_sdk_audio_exterior_aircraft, fmod_demo_exterior_aircraft_channel_group, true, nullptr);
+                FMODErrorHandler(__FILE__, __LINE__-1, result);
+
 
                 // Create a custom channel
                 result = FMOD_System_CreateChannelGroup(fmod_system_sdk, "Fmod_Demo_Exterior_Enviroment_Channel", &fmod_demo_exterior_enviroment_channel_group);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
+                // The next function has a problem on Windows 11 but works fine on Windows 10, Linux and the Mac
+                ChannelGroupFMod_sdk_audio_exterior_enviroment = XPLMGetFMODChannelGroup(xplm_AudioExteriorEnvironment);
+                result = FMOD_ChannelGroup_AddGroup(ChannelGroupFMod_sdk_audio_exterior_enviroment, fmod_demo_exterior_enviroment_channel_group, true, nullptr);
+                FMODErrorHandler(__FILE__, __LINE__-1, result);
+
+
                 // Create a custom channel
                 result = FMOD_System_CreateChannelGroup(fmod_system_sdk, "Fmod_Demo_Interior_Channel", &fmod_demo_interior_channel_group);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
+                // The next function has a problem on Windows 11 but works fine on Windows 10, Linux and the Mac
+                ChannelGroupFMod_sdk_audio_interior = XPLMGetFMODChannelGroup(xplm_AudioInterior);
+                result = FMOD_ChannelGroup_AddGroup(ChannelGroupFMod_sdk_audio_interior, fmod_demo_interior_channel_group, true, nullptr);
+                FMODErrorHandler(__FILE__, __LINE__-1, result);
+
+
                 // Create a custom channel
                 result = FMOD_System_CreateChannelGroup(fmod_system_sdk, "Fmod_Demo_UI_Channel", &fmod_demo_ui_channel_group);
+                FMODErrorHandler(__FILE__, __LINE__-1, result);
+
+                // The next function has a problem on Windows 11 but works fine on Windows 10, Linux and the Mac
+                ChannelGroupFMod_sdk_audio_ui = XPLMGetFMODChannelGroup(xplm_AudioUI);
+                result = FMOD_ChannelGroup_AddGroup(ChannelGroupFMod_sdk_audio_ui, fmod_demo_ui_channel_group, true, nullptr);
                 FMODErrorHandler(__FILE__, __LINE__-1, result);
 
 
